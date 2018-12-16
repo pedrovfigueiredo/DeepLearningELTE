@@ -786,8 +786,8 @@ get_ipython().system('cp /input/fcn-trained-on-ddsm-images/* ./model/')
 # In[37]:
 
 
-action = "train"
-init = True
+action = "eval"
+init = False
 
 ## train the model
 with tf.Session(graph=graph, config=config) as sess:
@@ -799,7 +799,9 @@ with tf.Session(graph=graph, config=config) as sess:
         sess.run(tf.global_variables_initializer())
         print("Initializing model...")
     else:
-        saver.restore(sess, './model/' + model_name + '.ckpt')
+        #saver.restore(sess, './model/' + model_name + '.ckpt')
+        model_name = "model_s2.0.0.36b.10"
+        saver.restore(sess, './input/fcn-trained-on-ddsm-images/' + model_name + '.ckpt')
         print("Restoring model", model_name)
     
     coord = tf.train.Coordinator()
