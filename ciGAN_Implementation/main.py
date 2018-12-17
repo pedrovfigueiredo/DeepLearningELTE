@@ -199,7 +199,7 @@ def train(epochs=1, batch_size=128):
             discriminator.trainable = False
             gan.train_on_batch(noise, y_gen)
 
-        if e == 1 or e % 5 == 0:
+        if e == 1 or e % 50 == 0:
             plot_generated_images(e, generator)
 
 if __name__ == '__main__':
