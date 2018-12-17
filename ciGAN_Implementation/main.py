@@ -66,12 +66,10 @@ def load_data():
     #Splitting 
     y_train = np.ones(dataset.shape[0])
 
-    x_train, x_test, y_train, y_test = train_test_split(dataset, y_train, test_size=0.2, random_state=33)
-
     x_train = (x_train.astype(np.float32) - 128.0) / 128.0
     x_train = x_train.reshape(x_train.shape[0], img_height*img_width)
 
-    return x_train, y_train, x_test, y_test
+    return x_train, y_train
 
 
 def get_optimizer():
@@ -159,7 +157,7 @@ def plot_generated_images(epoch, generator, examples=9, dim=(3, 3), figsize=(20,
 
 def train(epochs=1, batch_size=128):
     # Get the training and testing data
-    x_train, y_train, x_test, y_test = load_data()
+    x_train, y_train = load_data()
 
 
     # Split the training data into batches of size 128
@@ -203,4 +201,4 @@ def train(epochs=1, batch_size=128):
             plot_generated_images(e, generator)
 
 if __name__ == '__main__':
-    train(9999999, 1024)
+    train(9999999, 3645)
