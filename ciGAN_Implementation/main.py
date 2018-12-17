@@ -66,7 +66,7 @@ def load_data():
     #Splitting 
     y_train = np.ones(dataset.shape[0])
 
-    x_train = (x_train.astype(np.float32) - 128.0) / 128.0
+    x_train = (dataset.astype(np.float32) - 128.0) / 128.0
     x_train = x_train.reshape(x_train.shape[0], img_height*img_width)
 
     return x_train, y_train
