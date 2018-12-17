@@ -100,6 +100,8 @@ def plot_generated_images(epoch, generator, examples=100, dim=(10, 10), figsize=
 def train(epochs=1, batch_size=128):
     # Get the training and testing data
     x_train, y_train, x_test, y_test = load_minst_data()
+
+
     # Split the training data into batches of size 128
     batch_count = int(x_train.shape[0] / batch_size)
 

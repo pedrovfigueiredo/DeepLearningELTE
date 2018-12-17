@@ -1,4 +1,4 @@
-import os
+import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -11,19 +11,65 @@ from keras.datasets import mnist
 from keras.optimizers import Adam
 from keras import initializers
 
+from IPython.display import display
+from IPython.display import Image as _Imgdis
+from PIL import Image
+from scipy import ndimage
+from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+from sklearn.model_selection import train_test_split
+
 os.environ["KERAS_BACKEND"] = "tensorflow"
 
 np.random.seed(10)
 
 random_dim = 100
 
+img_width = 128
+img_height = 128
 
-def load_minst_data():
-    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+channels = 1
 
-    x_train = (x_train.astype(np.float32) - 127.5) / 127.5
+# 80% - 20%
+def load_data():
+    folder = "../FCN_Classifier_implementation/input/ddsm-mammography/cancer_imgs"
 
-    x_train = x_train.reshape(60000, 784)
+    onlyfiles = [f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+
+    print("Working with {0} images".format(len(onlyfiles)))
+
+    train_files = []
+    i=0
+    for _file in onlyfiles:
+        train_files.append(_file)
+        
+    print("Files in train_files: %d" % len(train_files))
+
+    
+    nb_classes = 1
+
+    dataset = np.ndarray(shape=(len(train_files), img_width, img_height), dtype=np.float32)
+
+    i = 0
+    for _file in train_files:
+        img = load_img(folder + "/" + _file, color_mode="grayscale")  # this is a PIL image
+        img.thumbnail((img_width, img_height))
+        # Convert to Numpy Array
+        x = img_to_array(img)
+        #x = np.rollaxis(x, 2, 0)
+        dataset[i] = x.reshape((img_width, img_height))
+        i += 1
+        if i % 250 == 0:
+            print("%d images to array" % i)
+    print("All images to array!")
+
+
+    #Splitting 
+    y_train = np.ones(dataset.shape[0])
+
+    x_train, x_test, y_train, y_test = train_test_split(dataset, y_train, test_size=0.2, random_state=33)
+
+    x_train = (x_train.astype(np.float32) - 128.0) / 128.0
+    x_train = x_train.reshape(x_train.shape[0], img_height*img_width)
 
     return x_train, y_train, x_test, y_test
 
@@ -43,14 +89,14 @@ def get_generator(optimizer):
     generator.add(Dense(1024))
     generator.add(LeakyReLU(0.2))
 
-    generator.add(Dense(784, activation='tanh'))
+    generator.add(Dense(channels*img_width*img_height, activation='tanh'))
     generator.compile(loss='binary_crossentropy', optimizer=optimizer)
     return generator
 
 
 def get_discriminator(optimizer):
     discriminator = Sequential()
-    discriminator.add(Dense(1024, input_dim=784, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+    discriminator.add(Dense(1024, input_dim=channels*img_width*img_height, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
     discriminator.add(LeakyReLU(0.2))
     discriminator.add(Dropout(0.3))
 
@@ -83,10 +129,10 @@ def get_gan_network(discriminator, random_dim, generator, optimizer):
 
 
 # Create a wall of generated MNIST images
-def plot_generated_images(epoch, generator, examples=100, dim=(10, 10), figsize=(10, 10)):
+def plot_generated_images(epoch, generator, examples=9, dim=(3, 3), figsize=(20, 20)):
     noise = np.random.normal(0, 1, size=[examples, random_dim])
     generated_images = generator.predict(noise)
-    generated_images = generated_images.reshape(examples, 28, 28)
+    generated_images = generated_images.reshape(examples, img_width, img_height)
 
     plt.figure(figsize=figsize)
     for i in range(generated_images.shape[0]):
@@ -99,7 +145,9 @@ def plot_generated_images(epoch, generator, examples=100, dim=(10, 10), figsize=
 
 def train(epochs=1, batch_size=128):
     # Get the training and testing data
-    x_train, y_train, x_test, y_test = load_minst_data()
+    x_train, y_train, x_test, y_test = load_data()
+
+
     # Split the training data into batches of size 128
     batch_count = int(x_train.shape[0] / batch_size)
 
@@ -118,6 +166,8 @@ def train(epochs=1, batch_size=128):
 
             # Generate fake MNIST images
             generated_images = generator.predict(noise)
+            #image_batch = np.array([img.reshape((channels*img_width*img_height)) for img in image_batch])
+            #generated_images = np.array([img.reshape(channels, img_width, img_height) for img in generated_images])
             X = np.concatenate([image_batch, generated_images])
 
             # Labels for generated and real data
@@ -135,8 +185,8 @@ def train(epochs=1, batch_size=128):
             discriminator.trainable = False
             gan.train_on_batch(noise, y_gen)
 
-        if e == 1 or e % 20 == 0:
+        if e == 1 or e % 5 == 0:
             plot_generated_images(e, generator)
 
 if __name__ == '__main__':
-    train(400, 2048)
+    train(20, 256)
