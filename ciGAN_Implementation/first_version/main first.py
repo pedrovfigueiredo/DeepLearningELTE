@@ -89,12 +89,6 @@ def get_generator(optimizer):
     generator.add(Dense(1024))
     generator.add(LeakyReLU(0.2))
 
-    generator.add(Dense(2048))
-    generator.add(LeakyReLU(0.2))
-
-    generator.add(Dense(4096))
-    generator.add(LeakyReLU(0.2))
-
     generator.add(Dense(channels*img_width*img_height, activation='tanh'))
     generator.compile(loss='binary_crossentropy', optimizer=optimizer)
     return generator
@@ -102,15 +96,7 @@ def get_generator(optimizer):
 
 def get_discriminator(optimizer):
     discriminator = Sequential()
-    discriminator.add(Dense(4096, input_dim=channels*img_width*img_height, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
-    discriminator.add(LeakyReLU(0.2))
-    discriminator.add(Dropout(0.3))
-
-    discriminator.add(Dense(2048))
-    discriminator.add(LeakyReLU(0.2))
-    discriminator.add(Dropout(0.3))
-
-    discriminator.add(Dense(1024))
+    discriminator.add(Dense(1024, input_dim=channels*img_width*img_height, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
     discriminator.add(LeakyReLU(0.2))
     discriminator.add(Dropout(0.3))
 
@@ -203,4 +189,4 @@ def train(epochs=1, batch_size=128):
             plot_generated_images(e, generator)
 
 if __name__ == '__main__':
-    train(9999999, 1024)
+    train(20, 256)
